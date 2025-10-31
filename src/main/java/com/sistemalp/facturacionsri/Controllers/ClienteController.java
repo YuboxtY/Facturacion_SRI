@@ -16,7 +16,7 @@ public class ClienteController {
     private ClienteService clienteServicio;
 
     // El post es para guardar
-    @PostMapping
+    @PostMapping ("/guardar")
     // El request body convierte el json en objeto
     public Cliente guardar(@RequestBody Cliente cliente) {
         return clienteServicio.guardar(cliente);
