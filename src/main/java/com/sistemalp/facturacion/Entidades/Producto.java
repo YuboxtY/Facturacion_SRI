@@ -17,13 +17,10 @@ public class Producto {
     private String productoNombre;
     private Double productoPrecio;
     private Double productoStock;
-    private Double productoTasa; // (No usamos este, pero ahí está)
+    private Double productoTasa;
     private Integer productoEstado;
     private String productoCategoria;
 
-    // --- ¡CAMPO AÑADIDO! ---
-    // Este es el interruptor para el IVA.
-    // 'columnDefinition' asegura que si no se envía, la BD asume 'true'.
     @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean productoGravaIva = true;
 }

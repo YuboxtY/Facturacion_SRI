@@ -21,7 +21,7 @@ public class ProductoControlador {
     public List<Producto> listarProductos() {
         return productoServicio.listarAll();
     }
-
+    // Buscar producto por ID
     @GetMapping("/{id}")
     public Producto obtenerProducto(@PathVariable Long id) {
         Producto producto = productoServicio.buscarId(id);
@@ -31,12 +31,12 @@ public class ProductoControlador {
         return producto;
     }
 
-    @PostMapping
+    @PostMapping("/crear")
     public Producto crearProducto(@RequestBody Producto producto) {
         return productoServicio.guardar(producto);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/actualizar/{id}")
     public Producto actualizarProducto(@PathVariable Long id, @RequestBody Producto datos) {
         return productoServicio.actualizar(id, datos);
     }

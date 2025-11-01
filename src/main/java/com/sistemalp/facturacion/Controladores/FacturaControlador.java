@@ -29,8 +29,6 @@ public class FacturaControlador {
 
     @PostMapping
     public Factura crearFactura(@RequestBody Factura factura) {
-        // Llama al método 'crearFactura' que creamos en el servicio,
-        // el cual descuenta stock y calcula totales.
         return facturaService.crearFactura(factura);
     }
 

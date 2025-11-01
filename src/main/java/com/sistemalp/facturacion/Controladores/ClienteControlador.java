@@ -15,24 +15,24 @@ public class ClienteControlador {
     @Autowired
     private ClienteServicio clienteServicio;
 
-    @PostMapping
+    @PostMapping("/crear")
     public Cliente guardar(@RequestBody ClienteConDocumentoDto cliente){
         return clienteServicio.guardar(cliente);
     }
-    @GetMapping
+    @GetMapping("/listar")
     public List<Cliente> listasAll(){
         return clienteServicio.listarAll();
     }
-    @GetMapping("{id}")
+    @GetMapping("/buscarporid/{id}")
     public Cliente buscarId(@PathVariable Long id){
         return clienteServicio.buscarId(id);
     }
-    @DeleteMapping("{id}")
+    @DeleteMapping("/eliminar/{id}")
     public void elimnar(@PathVariable Long id){
         clienteServicio.eliminar(id);
     }
 
-    @PutMapping("{id}")
+    @PutMapping("actualizar/{id}")
     public Cliente actualizarCliente(@PathVariable Long id, @RequestBody Cliente clienteDatos) {
         // Este endpoint espera un objeto Cliente, no el DTO
         return clienteServicio.actualizar(id, clienteDatos);
