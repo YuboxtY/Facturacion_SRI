@@ -13,7 +13,7 @@ import lombok.Setter;
 public class TipoDocumento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long tipoDucumentoId;
+    private Long tipoDocumentoId;
     private String tipoDocumentoNombre;
     private String tipoDocumentoCodigo;
     

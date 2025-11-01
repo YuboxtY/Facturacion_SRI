@@ -31,7 +31,7 @@ public class ProductoControlador {
         return producto;
     }
 
-    @PostMapping("/Crear")
+    @PostMapping
     public Producto crearProducto(@RequestBody Producto producto) {
         return productoServicio.guardar(producto);
     }

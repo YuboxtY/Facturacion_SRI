@@ -6,7 +6,9 @@ import com.sistemalp.facturacion.Entidades.Producto;
 import com.sistemalp.facturacion.Repositorios.ClienteRepositorio;
 import com.sistemalp.facturacion.Repositorios.FacturaRepositorio;
 import com.sistemalp.facturacion.Repositorios.ProductoRepositorio;
-import jakarta.transaction.Transactional;
+// ¡Asegúrate de importar el Transactional de SPRING!
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,9 +16,24 @@ import java.util.List;
 
 @Service
 public class FacturaServicio {
-    private  FacturaRepositorio facturaRepositorio;
-    private  ProductoRepositorio productoRepositorio;
-    private  ClienteRepositorio clienteRepositorio;
+
+    // --- ¡ESTA ES LA SOLUCIÓN AL NULLPOINTER (Parte 1)! ---
+    // Los declaramos 'final'
+    private final FacturaRepositorio facturaRepositorio;
+    private final ProductoRepositorio productoRepositorio;
+    private final ClienteRepositorio clienteRepositorio;
+
+    // --- ¡ESTA ES LA SOLUCIÓN AL NULLPOINTER (Parte 2)! ---
+    // Usamos un constructor para que Spring los "inyecte"
+    @Autowired
+    public FacturaServicio(FacturaRepositorio facturaRepositorio,
+                           ProductoRepositorio productoRepositorio,
+                           ClienteRepositorio clienteRepositorio) {
+        this.facturaRepositorio = facturaRepositorio;
+        this.productoRepositorio = productoRepositorio;
+        this.clienteRepositorio = clienteRepositorio;
+    }
+
 
     @Transactional
     public Factura crearFactura(Factura factura) {
@@ -25,7 +42,7 @@ public class FacturaServicio {
         if (factura.getCliente() == null || factura.getCliente().getClienteId() == null) {
             throw new IllegalArgumentException("La factura debe estar asociada a un cliente válido.");
         }
-        // Verificamos que el cliente exista
+        // Verificamos que el cliente exista (¡Ahora sí funciona!)
         clienteRepositorio.findById(factura.getCliente().getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + factura.getCliente().getClienteId()));
 
@@ -34,10 +51,12 @@ public class FacturaServicio {
             throw new IllegalArgumentException("La factura debe contener al menos un producto.");
         }
 
+        // Esta es tu lógica original (¡perfectamente válida!)
         double totalCalculado = 0.0;
 
         // 3. Asignar Fecha Actual
         factura.setFacturaFecha(LocalDateTime.now());
+        factura.setFacturaEstado(1); // ej: 1 = Activa
 
         // 4. Procesar Detalles y Stock
         for (DetalleFactura detalle : factura.getDetalles()) {
@@ -45,7 +64,7 @@ public class FacturaServicio {
                 throw new IllegalArgumentException("La cantidad del producto debe ser mayor a cero.");
             }
 
-            // Buscar el producto en la BD
+            // Buscar el producto en la BD (¡Ahora sí funciona!)
             Producto producto = productoRepositorio.findById(detalle.getProducto().getProductoId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + detalle.getProducto().getProductoId()));
 
@@ -54,9 +73,12 @@ public class FacturaServicio {
                 throw new IllegalArgumentException("Stock insuficiente para el producto: " + producto.getProductoNombre());
             }
 
-            // Actualizar Stock
+            // Actualizar Stock (¡Ahora sí funciona!)
             producto.setProductoStock(producto.getProductoStock() - detalle.getCantidad());
             productoRepositorio.save(producto);
+
+            // Congelar el precio al momento de la venta
+            detalle.setPrecioUnitario(producto.getProductoPrecio());
 
             // Calcular subtotal del detalle
             double subtotal = producto.getProductoPrecio() * detalle.getCantidad();
@@ -70,12 +92,13 @@ public class FacturaServicio {
         }
 
         // 5. Asignar Total y Guardar
-        // (Aquí deberías también calcular IVA y descuentos si los necesitas)
+        // Dejamos los otros campos en 0.0 o null si no los calculamos
         factura.setFacturaTotal(totalCalculado);
+        factura.setFacturaIva15(0.0); // O el cálculo que prefieras
+        factura.setFacturaSubtotal0(0.0);
+        factura.setFacturaSubtotal15(totalCalculado); // Asumimos que todo grava 15% por ahora
 
-        // Gracias a CascadeType.ALL en la entidad Factura,
-        // al guardar la factura, se guardarán automáticamente los detalles asociados.
-        return facturaRepositorio.save(factura);
+        return facturaRepositorio.save(factura); // (¡Ahora sí funciona!)
     }
 
     public List<Factura> listarFacturas() {
@@ -89,11 +112,22 @@ public class FacturaServicio {
 
     @Transactional
     public void eliminarFactura(Long id) {
-        if (!facturaRepositorio.existsById(id)) {
-            throw new RuntimeException("Factura no encontrada con ID: " + id);
+        // Primero, busca la factura para reponer el stock
+        Factura factura = this.obtenerporID(id);
+
+        // Reponer el stock
+        if (factura.getDetalles() != null) {
+            for(DetalleFactura detalle : factura.getDetalles()) {
+                Producto producto = detalle.getProducto();
+                // Validar que el producto no haya sido borrado
+                if (producto != null) {
+                    producto.setProductoStock(producto.getProductoStock() + detalle.getCantidad());
+                    productoRepositorio.save(producto);
+                }
+            }
         }
-        // (Nota: Si quieres reponer el stock al eliminar una factura,
-        // necesitarías lógica adicional aquí antes de borrar)
+
+        // Ahora sí, borrar la factura
         facturaRepositorio.deleteById(id);
     }
 

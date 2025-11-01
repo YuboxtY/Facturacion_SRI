@@ -3,6 +3,7 @@ package com.sistemalp.facturacion.Entidades;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,11 +23,13 @@ public class Factura {
     private Double facturaSubtotal0;
     private Double facturaSubtotal15;
     private Double facturaDescuento;
+
     @ManyToOne
     @JoinColumn(name = "clienteId", nullable = false)
     private Cliente cliente;
 
-    // 4. AÑADIR ESTE BLOQUE:
     @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<DetalleFactura> detalles;
+
 }
