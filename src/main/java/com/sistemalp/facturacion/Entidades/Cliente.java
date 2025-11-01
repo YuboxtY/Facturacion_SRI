@@ -1,5 +1,6 @@
 package com.sistemalp.facturacion.Entidades;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -58,5 +59,6 @@ public class Cliente {
     // --- CORRECTO ---
     // Esta es la relación que tu servicio SÍ utiliza.
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<TipoDocumentoCliente> documentos;
 }

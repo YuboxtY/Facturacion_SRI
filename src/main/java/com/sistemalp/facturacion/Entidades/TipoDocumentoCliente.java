@@ -2,6 +2,7 @@ package com.sistemalp.facturacion.Entidades;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -15,6 +16,7 @@ import lombok.Setter;
 public class TipoDocumentoCliente {
     @ManyToOne
     @JoinColumn(name = "clienteId", nullable = false)
+    @JsonBackReference
     private Cliente cliente;
     @ManyToOne
     @JoinColumn(name = "tipoDocumentoId", nullable = false)
