@@ -10,8 +10,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/facturas")
 public class FacturaControlador {
-    // Esta es 'inyección por constructor', es una excelente práctica
-    // y funciona perfecto con tu FacturaService.
+
     private  FacturaServicio facturaService;
 
     public FacturaControlador(FacturaServicio facturaService) {
@@ -38,5 +37,10 @@ public class FacturaControlador {
     @DeleteMapping("/{id}")
     public void eliminarFactura(@PathVariable Long id) {
         facturaService.eliminarFactura(id);
+    }
+
+    @PutMapping("/{id}")
+    public Factura actualizarFactura(@PathVariable Long id, @RequestBody Factura facturaDatos) {
+        return facturaService.actualizarFactura(id, facturaDatos);
     }
 }

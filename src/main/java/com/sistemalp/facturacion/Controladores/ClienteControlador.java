@@ -3,14 +3,7 @@ package com.sistemalp.facturacion.Controladores;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.sistemalp.facturacion.Dto.ClienteConDocumentoDto;
 import com.sistemalp.facturacion.Entidades.Cliente;
@@ -37,6 +30,12 @@ public class ClienteControlador {
     @DeleteMapping("{id}")
     public void elimnar(@PathVariable Long id){
         clienteServicio.eliminar(id);
+    }
+
+    @PutMapping("{id}")
+    public Cliente actualizarCliente(@PathVariable Long id, @RequestBody Cliente clienteDatos) {
+        // Este endpoint espera un objeto Cliente, no el DTO
+        return clienteServicio.actualizar(id, clienteDatos);
     }
 
 }

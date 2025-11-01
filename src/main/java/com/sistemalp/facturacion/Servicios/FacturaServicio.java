@@ -96,4 +96,17 @@ public class FacturaServicio {
         // necesitarías lógica adicional aquí antes de borrar)
         facturaRepositorio.deleteById(id);
     }
+
+    @Transactional
+    public Factura actualizarFactura(Long id, Factura facturaActualizada) {
+        Factura facturaExistente = facturaRepositorio.findById(id)
+                .orElseThrow(() -> new RuntimeException("Factura no encontrada con ID: " + id));
+
+        facturaExistente.setFacturaNumero(facturaActualizada.getFacturaNumero());
+        facturaExistente.setFacturaEstado(facturaActualizada.getFacturaEstado());
+
+
+        return facturaRepositorio.save(facturaExistente);
+    }
+
 }

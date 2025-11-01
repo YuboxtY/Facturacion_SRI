@@ -28,7 +28,6 @@ public class ClienteServicio {
     @Autowired
     private TipoDocumentoClienteRepositorio tipoDocumentoClienteRepositorio;
 
-    // <-- 2. ANOTACIÓN AÑADIDA PARA GARANTIZAR QUE TODO SE CUMPLA O NADA SE CUMPLA
     @Transactional
     public Cliente guardar(ClienteConDocumentoDto clienteDto){
         List<DocumentoListaClienteDto> documentos=clienteDto.getDocumentos();
@@ -38,7 +37,7 @@ public class ClienteServicio {
         }
 
         Cliente cliente=clienteDto.getCliente();
-        clienteRepositorio.save(cliente); // Esto ahora es parte de la transacción
+        clienteRepositorio.save(cliente);
 
         for (DocumentoListaClienteDto doc : documentos) {
             TipoDocumentoCliente tipoDocumentoCliente=new TipoDocumentoCliente();
@@ -47,17 +46,16 @@ public class ClienteServicio {
             System.err.println(doc.getTipoDocumentoId());
             tipoDocumentoCliente.setNumeroDocumentoCliente(doc.getNumeroDocumentoCliente());
 
-            // <-- 3. LÍNEA MODIFICADA (MEJORA OPCIONAL)
-            // Se cambió getById por findById para lanzar un error claro si el ID no existe
+
             TipoDocumento tipoDocumento = tipoDocumentoRepositorio.findById(doc.getTipoDocumentoId())
                     .orElseThrow(() -> new RuntimeException("TipoDocumento no encontrado con ID: " + doc.getTipoDocumentoId()));
 
             tipoDocumentoCliente.setTipoDocumento(tipoDocumento);
             tipoDocumentoCliente.setTipoDocumentoFecha(LocalDateTime.now());
 
-            tipoDocumentoClienteRepositorio.save(tipoDocumentoCliente); // Esto también es parte de la transacción
+            tipoDocumentoClienteRepositorio.save(tipoDocumentoCliente);
         }
-        return cliente; // La transacción se confirma (commit) aquí si todo salió bien
+        return cliente;
     }
 
     public List<Cliente> listarAll(){
@@ -68,14 +66,29 @@ public class ClienteServicio {
         return clienteRepositorio.findById(id).orElse(null);
     }
 
-    // Nota: También es buena práctica hacer transaccional el método de eliminar.
     @Transactional
     public void eliminar(Long id){
-        // Puedes agregar una verificación si lo deseas, aunque deleteById ya es transaccional por sí mismo.
         if (!clienteRepositorio.existsById(id)) {
             throw new RuntimeException("Cliente no encontrado para eliminar, ID: " + id);
         }
-        // Deberías considerar qué pasa con los TipoDocumentoCliente asociados (borrado en cascada o manual)
         clienteRepositorio.deleteById(id);
+    }
+
+    @Transactional
+    public Cliente actualizar(Long id, Cliente clienteActualizado) {
+
+        Cliente clienteExistente = clienteRepositorio.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+
+
+        clienteExistente.setClienteNombre(clienteActualizado.getClienteNombre());
+        clienteExistente.setClienteAplellido(clienteActualizado.getClienteAplellido());
+        clienteExistente.setClienteDirecion(clienteActualizado.getClienteDirecion());
+        clienteExistente.setClienteTelefono(clienteActualizado.getClienteTelefono());
+        clienteExistente.setClienteMail(clienteActualizado.getClienteMail());
+        clienteExistente.setClienteEstado(clienteActualizado.getClienteEstado());
+
+
+        return clienteRepositorio.save(clienteExistente);
     }
 }
