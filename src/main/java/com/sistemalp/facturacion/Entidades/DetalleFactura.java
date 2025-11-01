@@ -26,10 +26,9 @@ public class DetalleFactura {
 
     private Integer cantidad;
 
-    // --- ¡¡ESTE ES EL CAMPO QUE FALTABA!! ---
-    // Este campo "congela" el precio del producto en el momento de la venta.
+
     @Column(nullable = false)
     private Double precioUnitario;
 
-    private Double subtotal; // Esto será (cantidad * precioUnitario)
+    private Double subtotal;
 }

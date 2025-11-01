@@ -30,37 +30,27 @@ public class ClienteServicio {
 
     @Transactional
     public Cliente guardar(ClienteConDocumentoDto clienteDto){
-        // 1. Extraes los documentos del DTO
         List<DocumentoListaClienteDto> documentos = clienteDto.getDocumentos();
-
-        // 2. Validas que la lista de documentos exista (TU LÍNEA 36)
         if( documentos == null || documentos.isEmpty() ){
             throw new RuntimeException("Error no tiene documentos");
         }
 
-        // 3. Extraes el cliente del DTO y lo guardas
         Cliente cliente = clienteDto.getCliente();
-        clienteRepositorio.save(cliente); // El cliente ya tiene su ID
+        clienteRepositorio.save(cliente);
 
-        // 4. Recorres la lista de documentos del DTO para guardarlos UNO POR UNO
         for (DocumentoListaClienteDto doc : documentos) {
             TipoDocumentoCliente tipoDocumentoCliente = new TipoDocumentoCliente();
 
-            // 5. Asignas el cliente (ya guardado)
             tipoDocumentoCliente.setCliente(cliente);
 
-            // 6. Asignas el número de documento
             tipoDocumentoCliente.setNumeroDocumentoCliente(doc.getNumeroDocumentoCliente());
 
-            // 7. Buscas la entidad TipoDocumento (ej: "Cédula" con ID 1)
             TipoDocumento tipoDocumento = tipoDocumentoRepositorio.findById(doc.getTipoDocumentoId())
                     .orElseThrow(() -> new RuntimeException("TipoDocumento no encontrado con ID: " + doc.getTipoDocumentoId()));
 
-            // 8. Asignas el TipoDocumento y la fecha
             tipoDocumentoCliente.setTipoDocumento(tipoDocumento);
             tipoDocumentoCliente.setTipoDocumentoFecha(LocalDateTime.now());
 
-            // 9. Guardas la entidad de enlace en su propio repositorio
             tipoDocumentoClienteRepositorio.save(tipoDocumentoCliente);
         }
 
@@ -89,14 +79,12 @@ public class ClienteServicio {
         Cliente clienteExistente = clienteRepositorio.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
 
-
         clienteExistente.setClienteNombre(clienteActualizado.getClienteNombre());
         clienteExistente.setClienteApellido(clienteActualizado.getClienteApellido());
         clienteExistente.setClienteDireccion(clienteActualizado.getClienteDireccion());
         clienteExistente.setClienteTelefono(clienteActualizado.getClienteTelefono());
         clienteExistente.setClienteMail(clienteActualizado.getClienteMail());
         clienteExistente.setClienteEstado(clienteActualizado.getClienteEstado());
-
 
         return clienteRepositorio.save(clienteExistente);
     }

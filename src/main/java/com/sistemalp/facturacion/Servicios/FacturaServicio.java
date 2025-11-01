@@ -16,13 +16,10 @@ import java.util.List;
 @Service
 public class FacturaServicio {
 
-    // --- Arreglo #1: Inyección de Dependencias ---
-    // Declaramos como 'final'
     private final FacturaRepositorio facturaRepositorio;
     private final ProductoRepositorio productoRepositorio;
     private final ClienteRepositorio clienteRepositorio;
 
-    // Usamos el constructor para que Spring las inyecte (¡No más NullPointerException!)
     @Autowired
     public FacturaServicio(FacturaRepositorio facturaRepositorio,
                            ProductoRepositorio productoRepositorio,
@@ -35,30 +32,29 @@ public class FacturaServicio {
     @Transactional
     public Factura crearFactura(Factura factura) {
 
-        // 1. Validar Cliente
+
         if (factura.getCliente() == null || factura.getCliente().getClienteId() == null) {
             throw new IllegalArgumentException("La factura debe estar asociada a un cliente válido.");
         }
         clienteRepositorio.findById(factura.getCliente().getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + factura.getCliente().getClienteId()));
 
-        // 2. Validar Detalles
+
         if (factura.getDetalles() == null || factura.getDetalles().isEmpty()) {
             throw new IllegalArgumentException("La factura debe contener al menos un producto.");
         }
 
-        // --- Arreglo #2: Lógica de Impuestos Completa ---
-        // Variables para los cálculos
+
         double subtotal15 = 0.0;
         double subtotal0 = 0.0;
         double iva15 = 0.0;
         double descuento = (factura.getFacturaDescuento() != null) ? factura.getFacturaDescuento() : 0.0;
 
-        // 3. Asignar Fecha y Estado
-        factura.setFacturaFecha(LocalDateTime.now());
-        factura.setFacturaEstado(1); // 1 = Activa
 
-        // 4. Procesar Detalles, Stock e Impuestos
+        factura.setFacturaFecha(LocalDateTime.now());
+        factura.setFacturaEstado(1);
+
+
         for (DetalleFactura detalle : factura.getDetalles()) {
             if (detalle.getCantidad() == null || detalle.getCantidad() <= 0) {
                 throw new IllegalArgumentException("La cantidad del producto debe ser mayor a cero.");
@@ -71,39 +67,25 @@ public class FacturaServicio {
                 throw new IllegalArgumentException("Stock insuficiente para: " + producto.getProductoNombre());
             }
 
-            // Actualizar Stock
             producto.setProductoStock(producto.getProductoStock() - detalle.getCantidad());
             productoRepositorio.save(producto);
 
-            // Congelar el precio y calcular subtotal del detalle
             detalle.setPrecioUnitario(producto.getProductoPrecio());
             double subtotalDetalle = producto.getProductoPrecio() * detalle.getCantidad();
             detalle.setSubtotal(subtotalDetalle);
-
-            // Asignar el "padre" (factura) al "hijo" (detalle)
             detalle.setFactura(factura);
-
-            // ¡Aquí está la magia!
-            // Usamos el 'boolean' que acabamos de añadir a Producto.java
             if (producto.isProductoGravaIva()) {
                 subtotal15 += subtotalDetalle;
             } else {
                 subtotal0 += subtotalDetalle;
             }
         }
-
-        // 5. Calcular totales finales
-        // (¡Cuidado! Asume IVA al 15%. Si usas el campo 'productoTasa', la lógica es más compleja)
         iva15 = subtotal15 * 0.15;
         double totalCalculado = (subtotal15 + subtotal0 + iva15) - descuento;
-
-        // 6. Asignar Totales a la Factura
         factura.setFacturaSubtotal15(subtotal15);
         factura.setFacturaSubtotal0(subtotal0);
         factura.setFacturaIva15(iva15);
-        factura.setFacturaTotal(totalCalculado); // ¡Ahora el total es correcto!
-
-        // 7. Guardar (JPA/Hibernate guarda la Factura y los Detalles en cascada)
+        factura.setFacturaTotal(totalCalculado);
         return facturaRepositorio.save(factura);
     }
 
@@ -118,9 +100,7 @@ public class FacturaServicio {
 
     @Transactional
     public void eliminarFactura(Long id) {
-        Factura factura = this.obtenerporID(id); // Primero búsca la factura
-
-        // --- Lógica de Negocio Adicional: Reponer Stock ---
+        Factura factura = this.obtenerporID(id);
         for (DetalleFactura detalle : factura.getDetalles()) {
             Producto producto = detalle.getProducto();
             if (producto != null) {
@@ -136,8 +116,6 @@ public class FacturaServicio {
     public Factura actualizarFactura(Long id, Factura facturaActualizada) {
         Factura facturaExistente = this.obtenerporID(id);
 
-        // Lógica de negocio: ¿Qué se puede actualizar?
-        // Usualmente solo el estado (ej: anular) o el número.
         facturaExistente.setFacturaNumero(facturaActualizada.getFacturaNumero());
         facturaExistente.setFacturaEstado(facturaActualizada.getFacturaEstado());
 

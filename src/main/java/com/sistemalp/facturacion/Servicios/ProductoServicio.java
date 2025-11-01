@@ -32,11 +32,10 @@ public class ProductoServicio {
     }
 
     public Producto actualizar(Long id, Producto productoActualizado) {
-        // 1. Buscamos el producto existente
+
         Producto productoExistente = productoRepositorio.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
 
-        // 2. Actualizamos todos los campos con los datos nuevos
         productoExistente.setProductoNombre(productoActualizado.getProductoNombre());
         productoExistente.setProductoSerial(productoActualizado.getProductoSerial());
         productoExistente.setProductoPrecio(productoActualizado.getProductoPrecio());
@@ -45,7 +44,6 @@ public class ProductoServicio {
         productoExistente.setProductoEstado(productoActualizado.getProductoEstado());
         productoExistente.setProductoCategoria(productoActualizado.getProductoCategoria());
 
-        // 3. Guardamos los cambios
         return productoRepositorio.save(productoExistente);
     }
 }
