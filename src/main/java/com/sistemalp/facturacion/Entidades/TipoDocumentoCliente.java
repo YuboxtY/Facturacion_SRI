@@ -18,6 +18,8 @@ public class TipoDocumentoCliente {
     @JoinColumn(name = "clienteId", nullable = false)
     @JsonBackReference
     private Cliente cliente;
+
+
     @ManyToOne
     @JoinColumn(name = "tipoDocumentoId", nullable = false)
     private TipoDocumento tipoDocumento;
